@@ -1,7 +1,7 @@
 __global__ void mapToNumb(
 	const int N, //Number of whole threads
 	const int M, //Length of subseq that one thread handles
-	int* seq, 
+	char* seq, 
 	int* numb_seq,
 )
 {
@@ -12,16 +12,16 @@ __global__ void mapToNumb(
 	if(idx < N*M) {
 	for(i=0; i < M; i++) {
 		letter = seq[idx+i];
-		if(letter == 65) {
+		if(letter == 'A') {
 			numb_seq[idx+i] = 0;
 		} else {
-		if(letter == 67) {
+		if(letter == 'C') {
 			numb_seq[idx+i] = 1;
 		} else {
-		if(letter == 71) {
+		if(letter == 'G') {
 			numb_seq[idx+i] = 2;
 		} else {
-		if(letter == 84) {
+		if(letter == 'U') {
 			numb_seq[idx+i] = 3;
 		} else {
 			numb_seq[idx+i] = (-1) * numbKmer;
@@ -67,6 +67,12 @@ __global__ void mapToAA(
 	int gid = blockDim.x * blockIdx.x + threadIdx.x;
 	int idx = gid * M;
 	
+	if(idx < N*M) {
+		codon_idx = codon_seq[idx];
+		if(codon_idx >= 0) {
+			aa_seq[idx] = rna_codon_tab[codon_idx];
+		}
+	}
 }
 
 
