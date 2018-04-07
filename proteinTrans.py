@@ -26,7 +26,7 @@ def proteinTrans(rnaSeqFile):
 	q, r = divmod(rnaLen, numbThreads)
 	q = q+1
 
-	rnaSeq = np.frombuffer(rnaSeqText)
+	rnaSeq = np.frombuffer(rnaSeqText, dtype=np.character)
 	rnaSeq = np.concatenate((rnaSeq, np.repeat('N', numbThreads - r)))
 	numbSeq = np.zeros(rnaSeq.size).astype(np.int32)
 	codonSeq = np.zeros(rnaSeq.size - 3 + 1).astype(np.int32)
