@@ -6,8 +6,9 @@ import numpy as np
 from time import time
 
 def genRNACodonTab(table_file):
-	f = open(table_file, 'r'):
+	f = open(table_file, 'r')
 	lines = f.readlines()
+	f.close()
 	rna_codon_tab = [line.split()[-1] for line in lines]
 	return np.array(rna_codon_tab)
 
