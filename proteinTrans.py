@@ -6,7 +6,7 @@ import numpy as np
 from time import time
 
 def genRNACodonTab(table_file):
-	f = open(table_file, 'r')
+	f = open(table_file, 'rb')
 	lines = f.readlines()
 	f.close()
 	rna_codon_tab = [line.split()[-1] for line in lines]
@@ -26,11 +26,11 @@ def proteinTrans(rnaSeqFile):
 	q, r = divmod(rnaLen, numbThreads)
 	q = q+1
 
-	rnaSeq = np.frombuffer(rnaSeqText, dtype=np.uint8).astype(np.character)
-	rnaSeq = np.concatenate((rnaSeq, np.repeat('N', numbThreads - r)))
+	rnaSeq = np.frombuffer(rnaSeqText, dtype=np.uint8)
+	rnaSeq = np.concatenate((rnaSeq, np.repeat(78, numbThreads - r).astype(np.uint8)))
 	numbSeq = np.zeros(rnaSeq.size).astype(np.int32)
 	codonSeq = np.zeros(rnaSeq.size - 3 + 1).astype(np.int32)
-	aaSeq = np.repeat('', codonSeq.size)
+	aaSeq = np.repeat(0, codonSeq.size).astype(np.uint8)
 
 	#Get rna_codon_table
 	rna_codon_table = genRNACodonTab("RNA_Codon_Tab.txt")
@@ -49,6 +49,7 @@ def proteinTrans(rnaSeqFile):
 	M = q
 	mapToNumb(np.int32(N), np.int32(M), cuda.In(rnaSeq), cuda.Out(numbSeq), grid=(gridSize, 1, 1), block=(blockSize, 1, 1))
 	genNumbCodon(np.int32(N), np.int32(M), cuda.In(numbSeq), cuda.Out(codonSeq), grid=(gridSize, 1, 1,), block=(blockSize, 1, 1))
+	print(codonSeq)
 	mapToAA(np.int32(N), np.int32(M), cuda.In(rna_codon_table), cuda.In(codonSeq), cuda.Out(aaSeq), grid=(gridSize, 1, 1), block=(blockSize, 1, 1))
 
 	return aaSeq
@@ -56,7 +57,7 @@ def proteinTrans(rnaSeqFile):
 def main():
 	rnaFile = "rna_seq.txt"
 	aaSeq = proteinTrans(rnaFile)
-	print(aaSeq)
+	print(aaSeq.view('|S1'))
 
 if __name__=="__main__":
 	main()

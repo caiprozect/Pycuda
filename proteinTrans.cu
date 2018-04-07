@@ -2,7 +2,7 @@ __global__ void mapToNumb(
 	const int N, //Number of whole threads
 	const int M, //Length of subseq that one thread handles
 	char* seq, 
-	int* numb_seq,
+	int* numb_seq
 )
 {
 	int gid = blockDim.x * blockIdx.x + threadIdx.x;
@@ -24,7 +24,7 @@ __global__ void mapToNumb(
 		if(letter == 'U') {
 			numb_seq[idx+i] = 3;
 		} else {
-			numb_seq[idx+i] = (-1) * numbKmer;
+			numb_seq[idx+i] = (-1) * (int)(powf(4, (float)3));
 		}
 		}
 		}
@@ -37,23 +37,26 @@ __global__ void genNumbCodon(
 	const int N,
 	const int M,
 	int* numb_seq,
-	int* codon_seq,
+	int* codon_seq
 	)
 {
 	int gid = blockDim.x * blockIdx.x + threadIdx.x;
 	int idx = gid * M;
-	int i;
+	int i, k;
+	int codon_numb, loc_idx, numb, base;
 
-	if(idx <= N*M - 3 + 1) {
+	for(i=0; i < M; i++) {
 		codon_numb = 0;
 		loc_idx = idx + i;
-		for(i=0; i<3; i++) {
-			numb = codon_seq[loc_idx];
-			base = (int)powf(4, (float)(2-i));
-			codon_numb += numb * base;
+		if(loc_idx <= N*M -3 + 1) {
+			for(k=0; k<3; k++) {
+				numb = numb_seq[loc_idx];
+				base = (int)powf(4, (float)(2-k));
+				codon_numb += numb * base;
+			}
+			codon_seq[loc_idx] = codon_numb;
 		}
-		codon_seq[idx] = codon_numb;
-	}
+	}	
 }
 
 __global__ void mapToAA(
@@ -61,18 +64,24 @@ __global__ void mapToAA(
 	const int M,
 	char* rna_codon_tab,
 	int* codon_seq,
-	char* aa_seq,
+	char* aa_seq
 	)
 {
 	int gid = blockDim.x * blockIdx.x + threadIdx.x;
 	int idx = gid * M;
+	int codon_idx, loc_idx;
+	int i;
 	
-	if(idx < N*M) {
-		codon_idx = codon_seq[idx];
-		if(codon_idx >= 0) {
-			aa_seq[idx] = rna_codon_tab[codon_idx];
+	for(i=0; i < M; i++) {
+		loc_idx = idx + i;
+		codon_idx = codon_seq[loc_idx];
+		if(loc_idx <= N*M -3 + 1) {
+			if(codon_idx >= 0) {
+				aa_seq[loc_idx] = rna_codon_tab[codon_idx];
+			}
 		}
 	}
+
 }
 
 
