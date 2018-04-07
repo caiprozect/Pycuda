@@ -1,6 +1,6 @@
 import pycuda.driver as cuda
 import pycuda.autoinit
-from pycuda.compliler import SourceModule
+from pycuda.compiler import SourceModule
 
 import numpy as np 
 from time import time
